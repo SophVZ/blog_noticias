@@ -5,7 +5,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
     {path: '/', name: 'home', component: HomeView},
-    {path: '/login', name: 'auth', component: LoginView}
+    {path: '/login', name: 'login', component: LoginView},
+    { path: '/noticia/:id',name: 'noticia-detalle',component: () => import('../views/DetalleView.vue'), props: true}
 ]
 
 const router = createRouter({
