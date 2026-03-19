@@ -34,7 +34,7 @@
 
 <script>
     import { db } from '../firebase';
-    import { collection, query, orderBy, getDocs } from "firebase/firestore";
+    import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 
     export default {
         name: 'HomeView',
@@ -43,23 +43,38 @@
             noticias: []
             }
         },
-        methods: {
-            async fetchNoticias() {
-            try {
-                const q = query(collection(db, "noticias"), orderBy("fecha", "desc"));
-                const querySnapshot = await getDocs(q);
-                
-                this.noticias = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-            } catch (error) {
-                console.error("Error al traer noticias:", error);
-            }
+        watch: {
+            '$route.query.categoria': function() {
+            this.fetchNoticias();
             }
         },
-        mounted() {
-            this.fetchNoticias();
+        methods: {
+            async fetchNoticias() {
+                try {
+                    const categoriaSeleccionada = this.$route.query.categoria;
+                    let q;
+
+                    if (categoriaSeleccionada) {
+                        q = query(
+                            collection(db, "noticias"),
+                            where("categoria", "==", categoriaSeleccionada),
+                            orderBy("fecha", "desc")
+                        );
+                    } else {
+                        q = query(collection(db, "noticias"), orderBy("fecha", "desc"));
+                    }
+                    const querySnapshot = await getDocs(q);
+                    this.noticias = querySnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                } catch (error) {
+                    console.error("Error al filtrar:", error);
+                }
+            },
+            mounted() {
+                this.fetchNoticias();
+            }
         }
     }
 </script>
