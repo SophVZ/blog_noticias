@@ -30,8 +30,9 @@
 </template>
 
 <script>
-    import { auth } from '../firebase';
+    import { auth, db } from '../firebase';
     import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+    import { doc, setDoc } from "firebase/firestore"; 
 
     export default {
         name: 'AuthView',
@@ -44,18 +45,23 @@
         },
         methods: {
             async ejecutarAccion() {
-            try {
-                if (this.esLogin) {
-                await signInWithEmailAndPassword(auth, this.email, this.password);
-                alert("¡Bienvenido!");
-                } else {
-                await createUserWithEmailAndPassword(auth, this.email, this.password);
-                alert("Usuario creado con éxito");
+                try {
+                    if (this.esLogin) {
+                        await signInWithEmailAndPassword(auth, this.email, this.password);
+                    } else {
+                        const userCredential = await createUserWithEmailAndPassword(auth, this.email, this.password);
+                        const user = userCredential.user;
+                        await setDoc(doc(db, "usuarios", user.uid), {
+                            email: this.email,
+                            ultimas_vistas: [], 
+                            rol: "lector"
+                        });
+                        alert("Usuario registrado y perfil creado");
+                    }
+                    this.$router.push('/');
+                } catch (error) {
+                    alert("Error: " + error.message);
                 }
-                this.$router.push('/'); 
-            } catch (error) {
-                alert("Error: " + error.message);
-            }
             }
         }
     }
