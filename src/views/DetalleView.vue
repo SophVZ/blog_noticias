@@ -3,20 +3,21 @@
         <div class="container" v-if="noticia">
             <div class="row justify-content-center">
                 <div class="col-lg-8 bg-white p-4 p-md-5 shadow-sm rounded">
-<img 
-  :src="noticia.imagen || 'https://placehold.co/600x400?text=Noticia+'" 
-  @error="$event.target.src = 'https://placehold.co/600x400?text=Noticia+'"
-  class="card-img-top" 
-  alt="Noticia"
-  style="height: 200px; object-fit: cover;"
->  
-                  <h1>{{ noticia.titulo }}</h1>
+                    <img 
+                    :src="noticia.imagen || 'https://placehold.co/600x400?text=Noticia+'" 
+                    @error="$event.target.src = 'https://placehold.co/600x400?text=Noticia+'"
+                    class="card-img-top" 
+                    alt="Noticia"
+                    style="height: 200px; object-fit: cover;"
+                    >  
+                    <h1>{{ noticia.titulo }}</h1>
                     <p class="text-muted">
                     Publicado el: {{ noticia.fecha && noticia.fecha.toDate ? noticia.fecha.toDate().toLocaleDateString() : 'Cargando fecha...' }}
                     </p>        <hr>
                     <div class="lead">
                         {{ noticia.contenido }}
                     </div>
+                    
                     <section class="mt-5 pb-5">
                         <h3>Comentarios</h3>
                         <div v-if="usuarioLogueado" class="mb-4">
@@ -38,6 +39,13 @@
                             <p v-if="comentarios.length === 0" class="text-muted">Aún no hay comentarios. ¡Sé el primero!</p>
                         </div>
                     </section>
+                    <button 
+                    v-if="user && noticia.autorId === user.uid" 
+                    @click="eliminarNoticia(noticia.id)" 
+                    class="btn btn-outline-danger btn-sm ms-2"
+                    >
+                    <i class="bi bi-trash"></i> Eliminar
+                    </button>
                 </div>
             </div>
         </div>  
@@ -46,7 +54,7 @@
 
 <script>
     import { db, auth } from '../firebase/friebase.js';
-    import { collection, query, where, orderBy, getDocs, addDoc, serverTimestamp, doc, getDoc, updateDoc} from "firebase/firestore";
+    import { collection, query, where, orderBy, getDocs, addDoc, serverTimestamp, doc, getDoc, updateDoc, deleteDoc} from "firebase/firestore";
     import { onAuthStateChanged } from "firebase/auth";
 
     export default {
@@ -56,7 +64,8 @@
             noticia: null,
             comentarios: [],
             nuevoComentario: '',
-            usuarioLogueado: null
+            usuarioLogueado: null,
+            user: null
             }
         },
         methods: {
@@ -72,18 +81,18 @@
                 if (auth.currentUser) {
                     const userRef = doc(db, "usuarios", auth.currentUser.uid);
                     try {
-      const userSnap = await getDoc(userRef);
-      if (userSnap.exists()) {
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
         let historial = userSnap.data().ultimas_vistas || [];
         historial = historial.filter(id => id !== this.id);
         historial.push(this.id);
         if (historial.length > 10) historial.shift();
         await updateDoc(userRef, {
-          ultimas_vistas: historial
-        });
-      }
-    } catch (e) {
-      console.log("Error al actualizar historial:", e);
+            ultimas_vistas: historial
+            });
+        }
+        } catch (e) {
+        console.log("Error al actualizar historial:", e);
     }
                 }
             },
@@ -112,13 +121,26 @@
                     console.error("Error al comentar:", e);
                 }
             },
+            async eliminarNoticia(id) {
+                if (confirm("¿Estás seguro de que quieres eliminar esta noticia?")) {
+                    try {
+                    await deleteDoc(doc(db, "noticias", id));
+                    alert("Noticia eliminada correctamente");
+                    this.noticias = this.noticias.filter(n => n.id !== id);
+                    } catch (error) {
+                    console.error("Error al eliminar:", error);
+                    alert("No tienes permisos para eliminar esta noticia");
+                    }
+                }
+            }
         },
         mounted() {
             this.cargarNoticia();
             this.cargarComentarios();
-            onAuthStateChanged(auth, (user) => {
-                this.usuarioLogueado = user;
-            });
+            onAuthStateChanged(auth, (firebaseUser) => {
+    this.user = firebaseUser; 
+    console.log("Usuario detectado en Detalle:", firebaseUser?.uid);
+});
         }
     }
 </script>

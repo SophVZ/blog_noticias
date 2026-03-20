@@ -13,19 +13,26 @@
             <div class="row">
                 <div class="col-md-4 mb-4" v-for="noticia in noticias" :key="noticia.id">
                     <div class="card h-100 shadow-sm">
-<img 
-  :src="noticia.imagen || 'https://placehold.co/600x400?text=Noticia+'" 
-  @error="$event.target.src = 'https://placehold.co/600x400?text=Noticia+'"
-  class="card-img-top" 
-  alt="Noticia"
-  style="height: 200px; object-fit: cover;"
->                    
-<div class="card-body">
-                            <h5 class="card-title">{{ noticia.titulo }}</h5>
-                            <p class="card-text text-truncate">{{ noticia.descripcion }}</p>
-                            <router-link :to="'/noticia/' + noticia.id" class="btn btn-outline-primary">
-                                Ver más
-                            </router-link>
+                    <img 
+                    :src="noticia.imagen || 'https://placehold.co/600x400?text=Noticia+'" 
+                    @error="$event.target.src = 'https://placehold.co/600x400?text=Noticia+'"
+                    class="card-img-top" 
+                    alt="Noticia"
+                    style="height: 200px; object-fit: cover;"
+                    >                    
+                        <div class="card-body">
+                                                    <h5 class="card-title">{{ noticia.titulo }}</h5>
+                                                    <p class="card-text text-truncate">{{ noticia.descripcion }}</p>
+                                                    <router-link :to="'/noticia/' + noticia.id" class="btn btn-outline-primary">
+                                                        Ver más
+                                                    </router-link>
+                                                    <button 
+                        v-if="user && noticia.autorId === user.uid" 
+                        @click="eliminarNoticia(noticia.id)" 
+                        class="btn btn-outline-danger btn-sm ms-2"
+                        >
+                        <i class="bi bi-trash"></i> Eliminar
+                        </button>
                         </div>
                         <div class="card-footer text-muted small">
                             Publicado el: {{ noticia.fecha?.toDate ? noticia.fecha.toDate().toLocaleDateString() : noticia.fecha }}
@@ -53,7 +60,7 @@
 <script>
     import { auth, db } from '../firebase/friebase.js';
     import { onAuthStateChanged } from "firebase/auth";
-    import { collection, query, where, orderBy, getDocs,doc, getDoc } from "firebase/firestore";
+    import { collection, query, where, orderBy, getDocs,doc, getDoc, deleteDoc } from "firebase/firestore";
 
     export default {
         name: 'HomeView',
@@ -96,36 +103,45 @@
                 }
             },
                 async fetchHistorial(uid) {
-               try {
-        const userDoc = await getDoc(doc(db, "usuarios", uid));
-        if (userDoc.exists() && userDoc.data().ultimas_vistas) {
-            // 1. Aquí definimos 'ids' e invertimos para que la más reciente sea la primera
-            const ids = userDoc.data().ultimas_vistas.slice(-4).reverse(); 
-            
-            // 2. IMPORTANTE: Usamos 'ids' para mapear y traer las noticias de Firestore
-            const promesas = ids.map(id => getDoc(doc(db, "noticias", id)));
-            const resultados = await Promise.all(promesas);
-            
-            this.historialNoticias = resultados
-                .filter(d => d.exists())
-                .map(d => ({ id: d.id, ...d.data() }));
-        }
-    } catch (error) {
-        console.error("Error al cargar historial:", error);
-    }
-            }
-            
-        },
-        mounted() {
-  this.fetchNoticias();
+                try {
+                    const userDoc = await getDoc(doc(db, "usuarios", uid));
+                    if (userDoc.exists() && userDoc.data().ultimas_vistas) {
+                        const ids = userDoc.data().ultimas_vistas.slice(-4).reverse(); 
+                        
+                        const promesas = ids.map(id => getDoc(doc(db, "noticias", id)));
+                        const resultados = await Promise.all(promesas);
+                        
+                        this.historialNoticias = resultados
+                            .filter(d => d.exists())
+                            .map(d => ({ id: d.id, ...d.data() }));
+                    }
+                } catch (error) {
+                    console.error("Error al cargar historial:", error);
+                }
+            },
+            async eliminarNoticia(id) {
+                if (confirm("¿Estás seguro de que quieres eliminar esta noticia?")) {
+                    try {
+                    await deleteDoc(doc(db, "noticias", id));
+                    alert("Noticia eliminada correctamente");
+                    this.noticias = this.noticias.filter(n => n.id !== id);
+                    } catch (error) {
+                    console.error("Error al eliminar:", error);
+                    alert("No tienes permisos para eliminar esta noticia");
+                    }
+                }
+                }
+            },
+            mounted() {
+            this.fetchNoticias();
 
-  onAuthStateChanged(auth, (firebaseUser) => {
-    if (firebaseUser) {
-      this.user = firebaseUser;
-      this.fetchHistorial(firebaseUser.uid);
-      this.fetchNoticias(); 
-    }
-  });
-}
+            onAuthStateChanged(auth, (firebaseUser) => {
+                if (firebaseUser) {
+                    this.user = firebaseUser;
+                    this.fetchHistorial(firebaseUser.uid);
+                    this.fetchNoticias(); 
+                }
+            });
+            }
     }
 </script>
