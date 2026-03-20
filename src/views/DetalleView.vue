@@ -3,8 +3,14 @@
         <div class="container" v-if="noticia">
             <div class="row justify-content-center">
                 <div class="col-lg-8 bg-white p-4 p-md-5 shadow-sm rounded">
-                    <img :src="noticia.imagen" class="img-fluid rounded mb-4" style="max-height: 400px; width: 100%; object-fit: cover;">
-                    <h1>{{ noticia.titulo }}</h1>
+<img 
+  :src="noticia.imagen || 'https://placehold.co/600x400?text=Noticia+'" 
+  @error="$event.target.src = 'https://placehold.co/600x400?text=Noticia+'"
+  class="card-img-top" 
+  alt="Noticia"
+  style="height: 200px; object-fit: cover;"
+>  
+                  <h1>{{ noticia.titulo }}</h1>
                     <p class="text-muted">
                     Publicado el: {{ noticia.fecha && noticia.fecha.toDate ? noticia.fecha.toDate().toLocaleDateString() : 'Cargando fecha...' }}
                     </p>        <hr>

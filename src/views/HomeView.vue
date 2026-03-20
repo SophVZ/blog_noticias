@@ -13,8 +13,14 @@
             <div class="row">
                 <div class="col-md-4 mb-4" v-for="noticia in noticias" :key="noticia.id">
                     <div class="card h-100 shadow-sm">
-                        <img :src="noticia.imagen" class="card-img-top" alt="Noticia">
-                        <div class="card-body">
+<img 
+  :src="noticia.imagen || 'https://placehold.co/600x400?text=Noticia+'" 
+  @error="$event.target.src = 'https://placehold.co/600x400?text=Noticia+'"
+  class="card-img-top" 
+  alt="Noticia"
+  style="height: 200px; object-fit: cover;"
+>                    
+<div class="card-body">
                             <h5 class="card-title">{{ noticia.titulo }}</h5>
                             <p class="card-text text-truncate">{{ noticia.descripcion }}</p>
                             <router-link :to="'/noticia/' + noticia.id" class="btn btn-outline-primary">

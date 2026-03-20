@@ -31,7 +31,10 @@
             </router-link>
           </li>
         </ul>
-        <div class="navbar-nav ms-auto">
+        <div class="navbar-nav ms-auto align-items-center">
+          <router-link v-if="user" class="nav-link text-warning" to="/nueva-noticia">
+  <i class="bi bi-plus-circle me-1"></i> Noticia
+</router-link>
           <router-link v-if="!user" class="nav-link btn btn-outline-primary btn-sm px-3 text-white" to="/login">
             <i class="bi bi-person-circle me-1"></i>Ingresar
           </router-link>
