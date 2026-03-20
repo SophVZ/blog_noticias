@@ -139,6 +139,7 @@
             this.cargarComentarios();
             onAuthStateChanged(auth, (firebaseUser) => {
     this.user = firebaseUser; 
+    this.usuarioLogueado=firebaseUser;
     console.log("Usuario detectado en Detalle:", firebaseUser?.uid);
 });
         }
