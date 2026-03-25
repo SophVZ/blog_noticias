@@ -24,6 +24,8 @@
                                 <option value="Deportes">Deportes</option>
                                 <option value="Cultura">Cultura</option>
                                 <option value="Economía">Economía</option>
+                                <option value="Sociedad">Sociedad</option>
+                                <option value="Ocio">Ocio</option>
                             </select>
                         </div>
                         <div class="mb-3">
