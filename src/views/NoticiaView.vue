@@ -59,6 +59,11 @@
                 try {
                     const autor = auth.currentUser;
 
+                    if (!autor){
+                        this.$router.push('/login');
+                        return;
+                    }
+
                     await addDoc(collection(db, "noticias"), {
                         titulo: this.titulo,
                         descripcion: this.descripcion,
@@ -74,6 +79,7 @@
                     this.$router.push('/');
                 } catch (error) {
                     console.error("Error:", error);
+                    alert.error("Hubo un error al publicar:", error)
                 }
             }
         }
