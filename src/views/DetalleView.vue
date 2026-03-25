@@ -6,9 +6,9 @@
                     <img 
                     :src="noticia.imagen || 'https://placehold.co/600x400?text=Noticia+'" 
                     @error="$event.target.src = 'https://placehold.co/600x400?text=Noticia+'"
-                    class="card-img-top" 
+                    class="card-img-top w-100 pb-2" 
                     alt="Noticia"
-                    style="height: 200px; object-fit: cover;"
+                    style="height: 300px;"
                     >  
                     <h1>{{ noticia.titulo }}</h1>
                     <p class="text-muted">
